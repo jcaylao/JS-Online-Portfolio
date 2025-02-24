@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Online Portfolio with HTML ONLY">
+    <meta name="keywords" content="HTML">
+    <meta name="author" content="Jaira">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="styles/main.css" rel="stylesheet">
+    <title>Projects page</title>
+    <style>
+        .container {
+            display: grid;
+            grid-template-columns: 3fr 3fr 1fr;
+            grid-template-rows: 0.1fr 1fr 1fr;
+            gap: 10px;
+            grid-template-areas:
+            "h1 . nav"
+            "img hgroup nav"
+            ". . nav"
+        }
+        /* Mobile */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: repeat(3, 1fr);
+                grid-template-areas:
+                "nav nav"
+                "h1 h1"
+                "img hgroup"
+            }
+        }
+        /* Tablet & Restrictive Laptop Screens */
+        @media (min-width: 769px) and (max-width: 1200px) {
+            .container {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 0.5fr);
+                grid-template-areas:
+                "h1 h1 nav"
+                "img hgroup nav"
+                ". . nav"
+            }
+        }
+        h1 {
+            grid-area: h1;
+            font-size: calc(2.7dvw + 1dvh);
+            padding-left: 20px;
+        }
+        #project1 {
+            grid-area: hgroup;
+            padding-left: 50px;
+            padding-right: 50px;
+        }
+        #project1 h2 {
+            font-size: calc(1dvw + 1dvh);
+        }
+        #project1 p {
+            font-size: calc(0.9dvw + 0.75dvh)
+        }
+        #grocery-app {
+            grid-area: img;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .video-container {
+            position: relative;
+            width: 40dvw;
+            height: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .video-container img {
+            width: 40dvw;
+            height: auto;
+            object-fit: cover;
+            border-radius: 10%;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .hover-video {
+            position: absolute;
+            width: 40dvw;
+            height: auto;
+            border-radius: 10%;
+            object-fit: cover;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .video-container:hover img {
+            opacity: 0;
+        }
+        .video-container:hover .hover-video {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><a href="index.html">About Me</a></li>
+                <li><a href="skills.html">Skills</a></li>
+                <li><a href="projects.html">Projects</a></li>
+                <li><a href="contact.html">Contact Me</a></li>
+            </ul>
+        </nav>
+        <h1>Projects</h1>
+        <section id="grocery-app">
+            <div class="video-container">
+                <img src="images/GROCERY-APP.png" alt="GROCERY-APP">
+                <video class="hover-video" autoplay muted loop playsInline>
+                    <source src="images/GroceryAppDemo.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </section>
+
+        <hgroup id="project1">
+            <h2>Grocery & Cooking App</h2>
+            <p>
+                A grocery and cooking app that allows users to easily find new recipes and keep track
+                of their groceries. One feature is recipe tinder, in which users are given a recipe
+                and they can choose to like or dislike a recipe. Another feature is a receipt scanner
+                that allows users to scan their receipts and upload it to their virtual pantry.
+            </p>
+        </hgroup>
+    </main>
+
+    <noscript>Javascript is disabled, some features may not work properly.</noscript>
+    <script>
+        // Placeholder for JavaScript
+    </script>
+</body>
+</html>
