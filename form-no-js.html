@@ -199,7 +199,6 @@
             </a>
         </section>
 
-        <!--TODO:UPDATE STYLE AND UPDATE HAS FUNCTION IN STYLE-->
         <form action="https://httpbin.org/post" method="POST">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" required>
@@ -212,7 +211,7 @@
                    placeholder="123-456-7890">
 
             <label for="comments">Comments <span aria-hidden="true">(max 300 char)</span>:</label>
-            <textarea id="comments" name="comments" maxlength="300"></textarea>
+            <textarea id="comments" name="comments" maxlength="300" inputmode="text"></textarea>
 
             <input type="hidden" name="possible_bot" value="true">
 
