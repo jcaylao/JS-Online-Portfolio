@@ -10,6 +10,21 @@
     <link href="styles/main.css" rel="stylesheet">
     <title>Projects page</title>
     <style>
+        :root {
+            --background-color: white;
+            --text-color: black;
+            --image-filter: none; /* Default filter for light mode */
+        }
+        [data-theme="dark"] {
+            --background-color: black;
+            --text-color: white;
+            --image-filter: invert(1); /* Invert colors for dark mode */
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
         .container {
             display: grid;
             grid-template-columns: 3fr 3fr 1fr;
@@ -103,6 +118,7 @@
     <main class="container">
         <nav>
             <ul>
+                <button class="theme-switcher" id="theme-toggle" aria-label="Toggle Theme">🌙</button>
                 <li><a href="index.html">About Me</a></li>
                 <li><a href="skills.html">Skills</a></li>
                 <li><a href="projects.html">Projects</a></li>
@@ -133,7 +149,25 @@
 
     <noscript>Javascript is disabled, some features may not work properly.</noscript>
     <script>
-        // Placeholder for JavaScript
+        //Dark and Light mode theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        });
     </script>
 </body>
 </html>

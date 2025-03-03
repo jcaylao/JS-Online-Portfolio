@@ -5,6 +5,8 @@
     --nav-ul-li-a-text-color: white;
     --nav-ul-li-a-hover-bg-color: #97595e;
     --nav-ul-li-a-hover-text-color: white;
+    --background-color: white;
+    --image-filter: none; /* Default filter for light mode */
 }
 
 body {

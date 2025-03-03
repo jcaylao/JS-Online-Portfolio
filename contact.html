@@ -10,6 +10,21 @@
     <link href="styles/main.css" rel="stylesheet">
     <title>Contact page</title>
     <style>
+        :root {
+            --background-color: white;
+            --text-color: black;
+            --image-filter: none; /* Default filter for light mode */
+        }
+        [data-theme="dark"] {
+            --background-color: black;
+            --text-color: white;
+            --image-filter: invert(1); /* Invert colors for dark mode */
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
         .container {
             display: grid;
             grid-template-columns: 1.5fr 1.5fr 0.5fr 1fr 1fr 1fr 0.5fr 1.7fr;
@@ -51,7 +66,7 @@
         select,
         input {
             width: 100%;
-            padding: 10px 0 10px 10px;
+            padding: 10px 0;
             font-size: 1em;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -76,12 +91,22 @@
         textarea {
             width: 100%;
             height: 150px;
-            padding: 10px 0 10px 10px;
+            padding: 10px 0;
             font-size: 1em;
             border: 1px solid #ccc;
             border-radius: 5px;
             transition: border 0.3s ease-in-out, background 0.3s ease-in-out;
             resize: none;
+        }
+        /*Error Messages*/
+        #error-messages {
+            display: none;
+            color: red;
+            font-size: 0.9em;
+        }
+        input:user-invalid + #error-messages,
+        textarea:invalid + #error-messages {
+            display: block;
         }
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -107,6 +132,7 @@
             padding: 25px;
             flex-direction: column;
             justify-content: center;
+            filter: var(--image-filter);
         }
         h2 {
             font-size: calc(1.2dvw + 1dvh);
@@ -138,7 +164,10 @@
             select,
             input {
                 font-size: 0.9em;
-                padding: 10px;
+                padding: 10px 0;
+            }
+            textarea {
+                padding: 10px 0;
             }
             button {
                 font-size: 0.9em;
@@ -167,7 +196,21 @@
             select,
             input {
                 font-size: 1em;
+                padding: 10px 0;
             }
+            textarea {
+                padding: 10px 0;
+            }
+        }
+        .error-container {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border: 1px solid red;
+            padding: 10px;
+            display: none;
+            background-color: #ffe6e6;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -176,6 +219,7 @@
     <main class="container">
         <nav id = "nav-sidebar">
             <ul>
+                <button class="theme-switcher" id="theme-toggle" aria-label="Toggle Theme">🌙</button>
                 <li><a href="index.html">About Me</a></li>
                 <li><a href="skills.html">Skills</a></li>
                 <li><a href="projects.html">Projects</a></li>
@@ -199,25 +243,27 @@
             </a>
         </section>
 
-        <!--TODO:UPDATE STYLE AND UPDATE HAS FUNCTION IN STYLE-->
-        <form action="https://httpbin.org/post" method="POST">
+        <form id="contact-form" action="https://httpbin.org/post" method="POST">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
+            <input type="text" id="name" name="name" maxlength="30" required>
+
+            <label for="company-name">Company Name:</label>
+            <input type="text" id="company-name" name="company-name" maxlength="100">
 
             <label for="email">Email:</label>
             <input type="email" id="form-email" name="email" required>
 
             <label for="phone-number">Phone Number<span aria-hidden="true"></span>:</label>
-            <input type="tel" id="phone-number" name="phone-number" pattern="\d{3}-\d{3}-\d{4}"
-                   placeholder="123-456-7890">
+            <input type="tel" id="phone-number" name="phone-number">
 
-            <label for="comments">Comments <span aria-hidden="true">(max 300 char)</span>:</label>
+            <label for="comments">Comments:</label>
             <textarea id="comments" name="comments" maxlength="300"></textarea>
+            <span class="char-count" id="char-count">300 characters remaining</span>
 
             <input type="hidden" name="possible_bot" value="true">
+            <input type="hidden" name="form-errors" id="form-errors">
 
-            <output id="error" name="error"></output>
-            <output id="info" name="info"></output>
+            <div id="error-messages" class="error-container"></div>
 
             <button type="submit">Submit</button>
         </form>
@@ -225,7 +271,163 @@
 
     <noscript>Javascript is disabled, some features may not work properly.</noscript>
     <script>
-        // Placeholder for JavaScript
-    </script>
-</body>
+        //Dark and Light mode theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        });
+
+        //Validate the fields
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('contact-form');
+            const commentsInput = document.getElementById('comments');
+            const phoneInput = document.getElementById('phone-number');
+            const charCount = document.getElementById('char-count');
+            const errorContainer = document.getElementById('error-messages');
+            const errorField = document.getElementById('form-errors');
+            let form_errors= [];
+            //Check for invalid fields
+            const fields = [
+                { id: 'name', pattern: /^[a-zA-Z\s]*$/, errorMsg: 'Name can only contain letters and spaces.' },
+                { id: 'company-name', pattern: /^[a-zA-Z0-9\s\-]*$/, errorMsg: 'Company name can only contain letters, numbers, spaces, and hyphens.' },
+                { id: 'form-email', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, errorMsg: 'Please enter a valid email address.' },
+                { id: 'phone-number', pattern: /^\d{3}-\d{3}-\d{4}$/, errorMsg: 'Phone number must be in format 123-456-7890.' },
+                {id: 'comments', pattern: /^[a-zA-Z0-9 .,!?'"()\-]*$/, errorMsg: 'Invalid character detected in comment.'},
+            ];
+            fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                input.addEventListener('input', function(event) {
+                    let originalValue = this.value;
+                    let newValue = '';
+                    let illegalCharDetected = false;
+                    for (let char of originalValue) {
+                        if (field.pattern.test(char)) {
+                            newValue += char;
+                        } else {
+                            illegalCharDetected = true;
+                        }
+                    }
+                    if (illegalCharDetected) {
+                        flashField(this);
+                        logError(field.id, `Illegal character detected ${field.id.replace('-','')}.`);
+                    }
+                    if (originalValue !== newValue) {
+                        this.value = newValue;
+                    } else {
+                        removeError(field.id);
+                    }
+                });
+                input.addEventListener('blur', function() {
+                    if (!this.checkValidity()) {
+                        logError(field.id, field.errorMsg);
+                    } else {
+                        removeError(field.id);
+                    }
+                });
+            });
+
+            function flashField(input) {
+                input.classList.add("flash");
+                setTimeout(() => input.classList.remove("flash"), 500);
+            }
+            function logError(field, message) {
+                removeError(field);
+                form_errors.push({field, message});
+                updateErrorContainer();
+                errorField.value = JSON.stringify(form_errors);
+            }
+            function removeError(field) {
+                form_errors = form_errors.filter(error => error.field !== field);
+                updateErrorContainer();
+                errorField.value = JSON.stringify(form_errors);
+            }
+            function updateErrorContainer() {
+                if (form_errors.length > 0) {
+                    errorContainer.innerHTML = form_errors.map(error => `<p>${error.message}</p>`).join('');
+                    errorContainer.style.display = 'block';
+                    // Fade out the message after 2 seconds
+                    setTimeout(() => {
+                        errorContainer.style.display = "none";
+                    }, 2000);
+                } else {
+                    errorContainer.innerHTML = '';
+                    errorContainer.style.display = 'none';
+                }
+            }
+            //Validate all fields
+            fields.forEach(validateField);
+
+            //Format phone number as XXX-XXX-XXXX and prevent invalid characters
+            phoneInput.addEventListener('input', function(event) {
+                let input = this.value.replace(/\D/g, ''); // Remove non-numeric characters
+                if (input.length > 3 && input.length <= 6) {
+                    input = input.slice(0, 3) + '-' + input.slice(3);
+                } else if (input.length > 6) {
+                    input = input.slice(0, 3) + '-' + input.slice(3, 6) + '-' + input.slice(6, 10);
+                }
+                this.value = input;
+                if (input.length === 12) {
+                    removeError('phone-number');
+                } else {
+                    flashField(this);
+                    logError('phone-number', 'Phone number must be in format 123-456-7890');
+                }
+            });
+            //Character countdown for comment section
+            commentsInput.addEventListener("input", function() {
+                let remaining = 300 - this.value.length;
+                charCount.textContent = `${remaining} characters remaining`;
+
+                if (remaining <= 50 && remaining > 20) {
+                    charCount.classList.add("warning");
+                    charCount.classList.remove("error");
+                } else if (remaining <= 20) {
+                    charCount.classList.add("error");
+                    charCount.classList.remove("warning");
+                } else {
+                    charCount.classList.remove("warning", "error");
+                }
+                //Prevent exceeding limit
+                if (this.value.length > 300) {
+                    this.value = this.value.substring(0, 300);
+                    logError('comments', 'Character limit exceeded!');
+                } else {
+                    removeError('comments');
+                }
+            });
+            //Form submission
+            form.addEventListener("submit", function(event) {
+                form_errors.length = 0;
+                errorContainer.innerHTML = '';
+                errorField.value = '';
+
+                fields.forEach(field => {
+                    const input = document.getElementById(field.id);
+                    if (!input.checkValidity()) {
+                        logError(field.id, field.errorMsg);
+                        event.preventDefault();
+                    }
+                });
+                if (form_errors.length > 0) {
+                    errorField.value = JSON.stringify(form_errors);
+                    event.preventDefault();
+                }
+            });
+        });
+        </script>
+        </body>
 </html>
