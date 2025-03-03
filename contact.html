@@ -61,7 +61,7 @@
             font-weight: bold;
             font-size: 1em;
             margin-bottom: 5px;
-            color: color-mix(in srgb, black 70%, white 30%);
+            color: black;
         }
         select,
         input {
@@ -304,52 +304,56 @@
             const fields = [
                 { id: 'name', pattern: /^[a-zA-Z\s]*$/, errorMsg: 'Name can only contain letters and spaces.' },
                 { id: 'company-name', pattern: /^[a-zA-Z0-9\s\-]*$/, errorMsg: 'Company name can only contain letters, numbers, spaces, and hyphens.' },
-                { id: 'form-email', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, errorMsg: 'Please enter a valid email address.' },
                 { id: 'phone-number', pattern: /^\d{3}-\d{3}-\d{4}$/, errorMsg: 'Phone number must be in format 123-456-7890.' },
                 {id: 'comments', pattern: /^[a-zA-Z0-9 .,!?'"()\-]*$/, errorMsg: 'Invalid character detected in comment.'},
             ];
             fields.forEach(field => {
                 const input = document.getElementById(field.id);
-                input.addEventListener('input', function(event) {
-                    let originalValue = this.value;
-                    let newValue = '';
-                    let illegalCharDetected = false;
-                    for (let char of originalValue) {
-                        if (field.pattern.test(char)) {
-                            newValue += char;
-                        } else {
-                            illegalCharDetected = true;
-                        }
-                    }
-                    if (illegalCharDetected) {
-                        flashField(this);
-                        logError(field.id, `Illegal character detected ${field.id.replace('-','')}.`);
-                    }
-                    if (originalValue !== newValue) {
-                        this.value = newValue;
-                    } else {
-                        removeError(field.id);
-                    }
+                input.addEventListener('input', function (event) {
+                    validateInput(input, field.pattern, field.errorMsg, field.id);
                 });
-                input.addEventListener('blur', function() {
-                    if (!this.checkValidity()) {
+                input.addEventListener('blur', function () {
+                    if (!input.checkValidity()) {
                         logError(field.id, field.errorMsg);
                     } else {
-                        removeError(field.id);
+                        removeError(field.id)
                     }
                 });
             });
-
-            function flashField(input) {
-                input.classList.add("flash");
-                setTimeout(() => input.classList.remove("flash"), 500);
+            function validateInput(input, pattern, errorMsg, fieldID) {
+                let originalValue = input.value;
+                let newValue = '';
+                let illegalCharDetected = false;
+                for (let char of originalValue) {
+                    if (pattern.test(char)) {
+                        newValue += char;
+                    } else {
+                        illegalCharDetected = true;
+                    }
+                }
+                if (illegalCharDetected) {
+                    flashField(this);
+                    logError(fieldID, `Illegal character detected ${field.id.replace('-', '')}.`);
+                }
+                if (originalValue !== newValue) {
+                    input.value = newValue;
+                } else {
+                    removeError(fieldID);
+                }
             }
+            //Flash field
+            function flashField(input) {
+                input.classList.add('flash');
+                setTimeout(() => { input.classList.remove('flash') }, 500);
+            }
+            //Log errors to form_errors array
             function logError(field, message) {
                 removeError(field);
                 form_errors.push({field, message});
                 updateErrorContainer();
                 errorField.value = JSON.stringify(form_errors);
             }
+            //Remove errors
             function removeError(field) {
                 form_errors = form_errors.filter(error => error.field !== field);
                 updateErrorContainer();
@@ -368,9 +372,6 @@
                     errorContainer.style.display = 'none';
                 }
             }
-            //Validate all fields
-            fields.forEach(validateField);
-
             //Format phone number as XXX-XXX-XXXX and prevent invalid characters
             phoneInput.addEventListener('input', function(event) {
                 let input = this.value.replace(/\D/g, ''); // Remove non-numeric characters
@@ -387,47 +388,53 @@
                     logError('phone-number', 'Phone number must be in format 123-456-7890');
                 }
             });
-            //Character countdown for comment section
-            commentsInput.addEventListener("input", function() {
-                let remaining = 300 - this.value.length;
-                charCount.textContent = `${remaining} characters remaining`;
+        //Character countdown for comment section
+        commentsInput.addEventListener("input", function() {
+            let remaining = 300 - this.value.length;
+            charCount.textContent = `${remaining} characters remaining`;
 
-                if (remaining <= 50 && remaining > 20) {
-                    charCount.classList.add("warning");
-                    charCount.classList.remove("error");
-                } else if (remaining <= 20) {
-                    charCount.classList.add("error");
-                    charCount.classList.remove("warning");
-                } else {
-                    charCount.classList.remove("warning", "error");
-                }
-                //Prevent exceeding limit
-                if (this.value.length > 300) {
-                    this.value = this.value.substring(0, 300);
-                    logError('comments', 'Character limit exceeded!');
-                } else {
-                    removeError('comments');
-                }
-            });
-            //Form submission
-            form.addEventListener("submit", function(event) {
-                form_errors.length = 0;
-                errorContainer.innerHTML = '';
-                errorField.value = '';
+            if (remaining <= 100 && remaining > 50 && remaining > 20) {
+                charCount.classList.add("warning");
+                charCount.classList.remove("error");
+                charCount.style.color = "#e0e019";
+            } else if (remaining <= 50 && remaining > 20) {
+                charCount.classList.add("warning");
+                charCount.classList.remove("error");
+                charCount.style.color = "orange";
+            } else if (remaining <= 20) {
+                charCount.classList.add("error");
+                charCount.classList.remove("warning");
+                charCount.style.color = "red";
+            } else {
+                charCount.classList.remove("warning", "error");
+                charCount.style.color = "black"
+            }
+            if (this.value.length > 300) {
+                this.value = this.value.substring(0, 300);
+                logError('comments', 'Character limit exceeded!');
+            } else {
+                removeError('comments');
+            }
+        });
+        //Form submission
+        form.addEventListener("submit", function(event) {
+            form_errors.length = 0;
+            errorContainer.innerHTML = '';
+            errorField.value = '';
 
-                fields.forEach(field => {
-                    const input = document.getElementById(field.id);
-                    if (!input.checkValidity()) {
-                        logError(field.id, field.errorMsg);
-                        event.preventDefault();
-                    }
-                });
-                if (form_errors.length > 0) {
-                    errorField.value = JSON.stringify(form_errors);
+            fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                if (!input.checkValidity()) {
+                    logError(field.id, field.errorMsg);
                     event.preventDefault();
                 }
             });
+            if (form_errors.length > 0) {
+                errorField.value = JSON.stringify(form_errors);
+                event.preventDefault();
+            }
         });
+    });
         </script>
         </body>
 </html>
